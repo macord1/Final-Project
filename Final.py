@@ -74,25 +74,15 @@ def Align_peaks(dt, fs, NEO_filtered, Train_filtered):
 
     return(APs)
 
-def PCA_analysis(X_train):
+def PCA_analysis(AP):
     '''
     Extracting features using PCA analysis
     '''
     # setting PCA features as 2
     pca = PCA(n_components = 2)
     # transforming the data
-    transformed_data = pca.fit_transform(X_train)  
-    fig = plt.figure()
-    # separating the columns to plot
-    data_1 = transformed_data[:,0]
-    data_2 = transformed_data[:,1]
-    # plotting the data as points
-    plt.plot(data_1,data_2, 'o')
-    plt.title('Extracted Features')
-    plt.xlabel('Feature 1')
-    plt.ylabel('Feature 2')
-    fig.savefig('Extracted Features.png')
-
+    transformed_data = pca.fit_transform(AP)  
+    
     return(transformed_data)
 
 def cluster_Kmeans(data):
@@ -104,23 +94,10 @@ def cluster_Kmeans(data):
     # using KMeans function to identify clusters
     CLUSTER = KMeans(n_clusters = 3).fit(data)
 
-    # centroids = CLUSTER.cluster_centers_
-
-    fig = plt.figure()
-
     # assigning same integer values to data of same cluster
     color_indices = CLUSTER.predict(data)
 
-    data_1 = data[:,0]
-    data_2 = data[:,1]
-
-    plt.scatter(data_1, data_2, c=color_indices)
-    plt.title('Clustered Features using KMeans')
-    plt.xlabel('Feature 1')
-    plt.ylabel('Feature 2')
-    fig.savefig('Clustered Features.png')
-
-
+    return(color_indices)
 
 if __name__ == "__main__":
     file = open('NII_Data.csv')
@@ -158,6 +135,24 @@ if __name__ == "__main__":
 
     extracted_features = PCA_analysis(AP)
 
-    cluster_Kmeans(extracted_features)
+    fig = plt.figure()
+    # separating the columns to plot
+    data_1 = extracted_features[:,0]
+    data_2 = extracted_features[:,1]
+    # plotting the data as points
+    plt.plot(data_1,data_2, 'o')
+    plt.title('Extracted Features using PCA')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    fig.savefig('Extracted Features.png')
+
+    color_indices= cluster_Kmeans(extracted_features)
+
+    fig = plt.figure()
+    plt.scatter(data_1, data_2, c=color_indices)
+    plt.title('Clustered Features using KMeans')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    fig.savefig('Clustered Features.png')
 
     plt.show()

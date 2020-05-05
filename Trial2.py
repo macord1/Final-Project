@@ -82,18 +82,7 @@ def PCA_analysis(AP):
     # setting PCA features as 2
     pca = PCA(n_components = 2)
     # transforming the data
-    transformed_data = pca.fit_transform(AP)
-      
-    fig = plt.figure()
-    # separating the columns to plot
-    data_1 = transformed_data[:,0]
-    data_2 = transformed_data[:,1]
-    # plotting the data as points
-    plt.scatter(data_1,data_2)
-    plt.title('Extracted Features')
-    plt.xlabel('Feature 1')
-    plt.ylabel('Feature 2')
-    fig.savefig('Extracted Features.png')
+    transformed_data = pca.fit_transform(AP)  
     
     return(transformed_data)
 
@@ -106,24 +95,10 @@ def cluster_Kmeans(data):
     # using KMeans function to identify clusters
     CLUSTER = KMeans(n_clusters = 3).fit(data)
 
-    # centroids = CLUSTER.cluster_centers_
-
-    fig = plt.figure()
-
     # assigning same integer values to data of same cluster
     color_indices = CLUSTER.predict(data)
 
-    data_1 = data[:,0]
-    data_2 = data[:,1]
-
-    plt.scatter(data_1, data_2, c=color_indices)
-    plt.title('Clustered Features')
-    plt.xlabel('Feature 1')
-    plt.ylabel('Feature 2')
-    fig.savefig('Clustered Features.png')
-
-    print(color_indices)
-
+    return(color_indices)
 
 
 if __name__ == "__main__":
@@ -140,14 +115,18 @@ if __name__ == "__main__":
         test_data.append(float(line[i]))
     Train_t = np.arange(0.0, 5.0 - dt, dt)
     Test_t = np.arange(5.0, 25.0, dt)
+
     Train_filtered = BFP(train_data, Train_t, dt)
+    
     fig = plt.figure()
     plt.plot(Train_t, Train_filtered)
     plt.title('Filtered Training Data')
     plt.xlabel('Time (seconds)')
     plt.ylabel('Voltage (mV)')
     fig.savefig('Filtered Training Data.png')
+
     NEO_filtered = NEO_function(Train_filtered)
+
     fig = plt.figure()
     plt.plot(Train_t, NEO_filtered)
     plt.title('NEO Training Data')
@@ -163,10 +142,27 @@ if __name__ == "__main__":
 
     extracted_features = PCA_analysis(AP)
 
-    cluster_Kmeans(extracted_features)
+    fig = plt.figure()
+    # separating the columns to plot
+    data_1 = extracted_features[:,0]
+    data_2 = extracted_features[:,1]
+    # plotting the data as points
+    plt.plot(data_1,data_2, 'o')
+    plt.title('Extracted Features using PCA')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    fig.savefig('Extracted Features.png')
+
+    color_indices= cluster_Kmeans(extracted_features)
+
+    fig = plt.figure()
+    plt.scatter(data_1, data_2, c=color_indices)
+    plt.title('Clustered Features using KMeans')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    fig.savefig('Clustered Features.png')
 
     plt.show()
-
     
    
 
