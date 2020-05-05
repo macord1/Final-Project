@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import statistics
 from sklearn.decomposition import PCA 
 from sklearn.preprocessing import StandardScaler 
+from sklearn.cluster import KMeans 
 
 
 def BFP(data, time, dt):
@@ -92,6 +93,34 @@ def PCA_analysis(X_train):
     plt.ylabel('Feature 2')
     fig.savefig('Extracted Features.png')
 
+    return(transformed_data)
+
+def cluster_Kmeans(data):
+
+    '''
+    Clustering based on KMeans
+    '''
+    
+    # using KMeans function to identify clusters
+    CLUSTER = KMeans(n_clusters = 3).fit(data)
+
+    # centroids = CLUSTER.cluster_centers_
+
+    fig = plt.figure()
+
+    # assigning same integer values to data of same cluster
+    color_indices = CLUSTER.predict(data)
+
+    data_1 = data[:,0]
+    data_2 = data[:,1]
+
+    plt.scatter(data_1, data_2, c=color_indices)
+    plt.title('Clustered Features using KMeans')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    fig.savefig('Clustered Features.png')
+
+
 
 if __name__ == "__main__":
     file = open('NII_Data.csv')
@@ -127,6 +156,8 @@ if __name__ == "__main__":
 
     AP = Align_peaks(dt, fs, NEO_filtered, Train_filtered)
 
-    PCA_analysis(AP)
+    extracted_features = PCA_analysis(AP)
+
+    cluster_Kmeans(extracted_features)
 
     plt.show()

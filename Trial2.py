@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import statistics
+import copy
 from sklearn.decomposition import PCA 
-from sklearn.preprocessing import StandardScaler 
+from sklearn.cluster import KMeans 
+import pandas as pd
 
 
 def BFP(data, time, dt):
@@ -73,24 +75,55 @@ def Align_peaks(dt, fs, NEO_filtered, Train_filtered):
 
     return(APs)
 
-def PCA_analysis(X_train):
+def PCA_analysis(AP):
     '''
     Extracting features using PCA analysis
     '''
     # setting PCA features as 2
     pca = PCA(n_components = 2)
     # transforming the data
-    transformed_data = pca.fit_transform(X_train)  
+    transformed_data = pca.fit_transform(AP)
+      
     fig = plt.figure()
     # separating the columns to plot
     data_1 = transformed_data[:,0]
     data_2 = transformed_data[:,1]
     # plotting the data as points
-    plt.plot(data_1,data_2, 'o')
+    plt.scatter(data_1,data_2)
     plt.title('Extracted Features')
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
     fig.savefig('Extracted Features.png')
+    
+    return(transformed_data)
+
+def cluster_Kmeans(data):
+
+    '''
+    Clustering based on KMeans
+    '''
+    
+    # using KMeans function to identify clusters
+    CLUSTER = KMeans(n_clusters = 3).fit(data)
+
+    # centroids = CLUSTER.cluster_centers_
+
+    fig = plt.figure()
+
+    # assigning same integer values to data of same cluster
+    color_indices = CLUSTER.predict(data)
+
+    data_1 = data[:,0]
+    data_2 = data[:,1]
+
+    plt.scatter(data_1, data_2, c=color_indices)
+    plt.title('Clustered Features')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    fig.savefig('Clustered Features.png')
+
+    print(color_indices)
+
 
 
 if __name__ == "__main__":
@@ -121,14 +154,19 @@ if __name__ == "__main__":
     plt.xlabel('Time (seconds)')
     plt.ylabel('Nonlinear Energy Operator')
     fig.savefig('NEO Training Data.png')
+
     var = statistics.median(np.abs(NEO_filtered)) / 0.67
     k = 4
     threshold = var * k
 
     AP = Align_peaks(dt, fs, NEO_filtered, Train_filtered)
 
-    PCA_analysis(AP)
+    extracted_features = PCA_analysis(AP)
+
+    cluster_Kmeans(extracted_features)
 
     plt.show()
+
+    
    
 
