@@ -113,20 +113,25 @@ if __name__ == "__main__":
         test_data.append(float(line[i]))
     Train_t = np.arange(0.0, 5.0 - dt, dt)
     Test_t = np.arange(5.0, 25.0, dt)
+    
     Train_filtered = BFP(train_data, Train_t, dt)
+
     fig = plt.figure()
     plt.plot(Train_t, Train_filtered)
     plt.title('Filtered Training Data')
     plt.xlabel('Time (seconds)')
     plt.ylabel('Voltage (mV)')
     fig.savefig('Filtered Training Data.png')
+
     NEO_filtered = NEO_function(Train_filtered)
+
     fig = plt.figure()
     plt.plot(Train_t, NEO_filtered)
     plt.title('NEO Training Data')
     plt.xlabel('Time (seconds)')
     plt.ylabel('Nonlinear Energy Operator')
     fig.savefig('NEO Training Data.png')
+
     var = statistics.median(np.abs(NEO_filtered)) / 0.67
     k = 4
     threshold = var * k

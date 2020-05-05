@@ -1,9 +1,10 @@
 import numpy as np
+from numpy import linalg as LA
 import matplotlib.pyplot as plt
 import statistics
 import copy
-from sklearn.decomposition import PCA 
-from sklearn.cluster import KMeans 
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 import pandas as pd
 
 
@@ -30,6 +31,7 @@ def BFP(data, time, dt):
         Vout_2.append(Vout)
     return Vout_2
 
+
 def NEO_function(data):
     NEO = []
     for i in range(0, len(data)):
@@ -41,6 +43,7 @@ def NEO_function(data):
             neo = data[i] ** 2 - (data[i + 1] * data[i - 1])
         NEO.append(neo)
     return NEO
+
 
 def Align_peaks(dt, fs, NEO_filtered, Train_filtered):
 
@@ -75,24 +78,25 @@ def Align_peaks(dt, fs, NEO_filtered, Train_filtered):
 
     return(APs)
 
+
 def PCA_analysis(AP):
     '''
     Extracting features using PCA analysis
     '''
     # setting PCA features as 2
-    pca = PCA(n_components = 2)
+    pca = PCA(n_components=2)
     # transforming the data
-    transformed_data = pca.fit_transform(AP)  
-    
+    transformed_data = pca.fit_transform(AP)
+
     return(transformed_data)
 
-def cluster_Kmeans(data):
 
+def cluster_Kmeans(data):
     '''
     Clustering based on KMeans
     '''
     # using KMeans function to identify clusters
-    CLUSTER = KMeans(n_clusters = 3).fit(data)
+    CLUSTER = KMeans(n_clusters=3).fit(data)
 
     # centroids = CLUSTER.cluster_centers_
 
@@ -100,6 +104,94 @@ def cluster_Kmeans(data):
     color_indices = CLUSTER.predict(data)
 
     return(color_indices)
+
+
+def cluster_assign(train_PCA, test_PCA, test_time, color_indices, fs):
+    '''
+    Clusters spikes in test data to any of the three neurons 
+    3 clusters - 3 neurons
+    Based on k nearest neighbours algorithm
+    '''
+    # considers 10 nearest neighbours
+    k = 11
+    dur = 0
+    refractory_pd = round(0.002*fs)
+    # storing size of rows for test and train data
+    r_test = len(test_PCA)
+    r_train = len(train_PCA)
+
+    # intializing array to store data for the three neurons
+    neuron_1 = np.zeros(len(test_time), dtype=int)
+    neuron_2 = np.zeros(len(test_time), dtype=int)
+    neuron_3 = np.zeros(len(test_time), dtype=int)
+
+    # loop to identify and assign unklnown spikes
+    # to any of the neurons
+
+    for i in range(0, r_test):
+
+        # to store indices of nearest neighbours
+        cluster_check = []
+        # to store distance between points
+        d = []
+
+        # calculating distances between points in extracted
+        # features of training and test data
+        for j in range(0, r_train):
+            temp = LA.norm(train_PCA[j, :]-test_PCA[i, :])
+            d.append(temp)
+
+        # storing indices of k nearest neighbours
+        idx = np.argpartition(d, k)[:k]
+
+        # identifying which cluster it belongs to
+        for j in range(0, k):
+            cluster_check.append(color_indices[idx[j]])
+
+        # looks for cluster with max occurence
+        # and assigns to specific neuron
+        # 0 - neuron_1, 1 - neuron_2 and 2 - neuron_3
+        try :
+            check = statistics.mode(cluster_check)
+
+        except statistics.StatisticsError:
+            # error occurs when there is 2 mode values
+            # code to calculate mode
+            c_0 = 0
+            c_1 = 0
+            c_2 = 0
+
+            # calculating count of 0,1,2 in the cluster_check array
+            for j in cluster_check:
+                if cluster_check[j] == 0:
+                    c_0 = c_0 + 1
+                elif cluster_check[j] == 1:
+                    c_1 = c_1 + 1
+                elif cluster_check[j] == 2:
+                    c_2 = c_2 + 1
+                else:
+                    continue
+
+            c = [c_0, c_1, c_2]
+            # getting index of the highest number in c
+            check = np.argpartition(c,-1)[-1:]
+
+        if check == 0:
+            neuron_1[dur] = 1
+            dur = dur + refractory_pd
+
+        elif check == 1:
+            neuron_2[dur] = 1
+            dur = dur + refractory_pd
+
+        elif check == 2:
+            neuron_3[dur] = 1
+            dur = dur + refractory_pd
+
+        else:
+            continue
+
+    return (neuron_1, neuron_2, neuron_3)
 
 
 if __name__ == "__main__":
@@ -142,20 +234,20 @@ if __name__ == "__main__":
 
     AP = Align_peaks(dt, fs, NEO_filtered, Train_filtered)
 
-    extracted_features = PCA_analysis(AP)
+    train_extracted_features = PCA_analysis(AP)
 
     fig = plt.figure()
     # separating the columns to plot
-    data_1 = extracted_features[:,0]
-    data_2 = extracted_features[:,1]
+    data_1 = train_extracted_features[:, 0]
+    data_2 = train_extracted_features[:, 1]
     # plotting the data as points
-    plt.plot(data_1,data_2, 'o')
+    plt.plot(data_1, data_2, 'o')
     plt.title('Extracted Features using PCA')
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
     fig.savefig('Extracted Features.png')
 
-    color_indices= cluster_Kmeans(extracted_features)
+    color_indices = cluster_Kmeans(train_extracted_features)
 
     fig = plt.figure()
     plt.scatter(data_1, data_2, c=color_indices)
@@ -164,11 +256,11 @@ if __name__ == "__main__":
     plt.ylabel('Feature 2')
     fig.savefig('Clustered Features.png')
 
-    plt.show()
-    
+    # plt.show()
+
     # Finished training
     # repeating for test data
-        
+
     Test_filtered = BFP(test_data, Test_t, dt)
 
     NEO_filtered = NEO_function(Test_filtered)
@@ -179,8 +271,33 @@ if __name__ == "__main__":
 
     AP = Align_peaks(dt, fs, NEO_filtered, Test_filtered)
 
-    extracted_features = PCA_analysis(AP)
+    test_extracted_features = PCA_analysis(AP)
 
-    color_indices= cluster_Kmeans(extracted_features)
+    color_indices = cluster_Kmeans(test_extracted_features)
+
+    # print(color_indices)
+    neuron_1, neuron_2, neuron_3 = cluster_assign(
+        train_extracted_features, test_extracted_features, Test_t, color_indices, fs)
+
+    fig = plt.figure()
+    plt.plot(Test_t, neuron_1)
+    plt.title('Spikes - Neuron 1')
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Spikes')
+    fig.savefig('neuron_1.png')
+
+    fig = plt.figure()
+    plt.plot(Test_t, neuron_2)
+    plt.title('Spikes - Neuron 2')
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Spikes')
+    fig.savefig('neuron_2.png')
+
+    fig = plt.figure()
+    plt.plot(Test_t, neuron_3)
+    plt.title('Spikes - Neuron 3')
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Spikes')
+    fig.savefig('neuron_3.png')
 
     plt.show()
