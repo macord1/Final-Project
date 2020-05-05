@@ -29,7 +29,7 @@ def BFP(data, time, dt):
 
 def NEO_function(data):
     NEO = []
-    for i in range(0, len(data) - 1):
+    for i in range(0, len(data)):
         if i == 0:
             neo = data[i] ** 2 - data[i + 1]
         elif i == len(data) - 1:
@@ -87,6 +87,9 @@ if __name__ == "__main__":
             i = i + refrac_pts
         i = i + 1
 
+    print(len(Train_t))
+    print(len(Train_filtered))
+    print(len(NEO_filtered))
     # print(len(filt_window))
     # print(APs)
     # fig = plt.figure()
