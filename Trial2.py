@@ -91,9 +91,10 @@ def cluster_Kmeans(data):
     '''
     Clustering based on KMeans
     '''
-    
     # using KMeans function to identify clusters
     CLUSTER = KMeans(n_clusters = 3).fit(data)
+
+    # centroids = CLUSTER.cluster_centers_
 
     # assigning same integer values to data of same cluster
     color_indices = CLUSTER.predict(data)
@@ -102,6 +103,7 @@ def cluster_Kmeans(data):
 
 
 if __name__ == "__main__":
+
     file = open('NII_Data.csv')
     line = next(file).strip('\n').split(',')
     fs = 2.23221E4
@@ -117,7 +119,7 @@ if __name__ == "__main__":
     Test_t = np.arange(5.0, 25.0, dt)
 
     Train_filtered = BFP(train_data, Train_t, dt)
-    
+
     fig = plt.figure()
     plt.plot(Train_t, Train_filtered)
     plt.title('Filtered Training Data')
@@ -164,5 +166,21 @@ if __name__ == "__main__":
 
     plt.show()
     
-   
+    # Finished training
+    # repeating for test data
+        
+    Test_filtered = BFP(test_data, Test_t, dt)
 
+    NEO_filtered = NEO_function(Test_filtered)
+
+    var = statistics.median(np.abs(NEO_filtered)) / 0.67
+    k = 4
+    threshold = var * k
+
+    AP = Align_peaks(dt, fs, NEO_filtered, Test_filtered)
+
+    extracted_features = PCA_analysis(AP)
+
+    color_indices= cluster_Kmeans(extracted_features)
+
+    plt.show()
