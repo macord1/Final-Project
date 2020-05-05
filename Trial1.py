@@ -62,36 +62,40 @@ if __name__ == "__main__":
     plt.ylabel('Voltage (mV)')
     fig.savefig('Filtered Training Data.png')
     NEO_filtered = NEO_function(Train_filtered)
-    var = statistics.median(NEO_filtered) / 0.67
+    fig = plt.figure()
+    plt.plot(Train_t, NEO_filtered)
+    plt.title('NEO Training Data')
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Nonlinear Energy Operator')
+    fig.savefig('NEO Training Data.png')
+    var = statistics.median(np.abs(NEO_filtered)) / 0.67
     k = 4
     threshold = var * k
-    # Thres_array = np.full(1, len(NEO_filtered), threshold)
-    pts_before = int(0.001 * fs)
-    pts_after = int(0.002 * fs)
-    t = np.arange(0, 0.003 + dt, dt)
+    pts_before = round(0.001 * fs)
+    pts_after = round(0.002 * fs)
+    t = np.arange(0, 0.003, dt)
     refractory = 2E-3
     refrac_pts = int(refractory * fs)
     APs = []
     i = 0
+    fig = plt.figure()
     while i <= len(NEO_filtered) - refrac_pts:
         peak = []
         if NEO_filtered[i] >= threshold:
             window = [i, i + refrac_pts]
-            peak = NEO_filtered[window[0]:window[1]]
+            peak = Train_filtered[window[0]:window[1]]
             max_value = max(peak)
             max_index = peak.index(max_value)
             max_index = max_index + i - 1
             window2 = [max_index - pts_before, max_index + pts_after]
             filt_window = Train_filtered[window2[0]:window2[1]]
-            APs.append([filt_window])
+            plt.plot(t, filt_window)
+            APs.append(filt_window)
             i = i + refrac_pts
-        i = i + 1
+        else:
+            i = i + 1
 
-    print(len(Train_t))
-    print(len(Train_filtered))
-    print(len(NEO_filtered))
-    # print(len(filt_window))
-    # print(APs)
-    # fig = plt.figure()
-    # plt.plot(t, APs)
-    # fig.savefig('Aligned peaks.png')
+    plt.title('Aligned Action Potentials')
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Voltage (mV)')
+    fig.savefig('Aligned peaks.png')
