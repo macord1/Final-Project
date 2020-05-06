@@ -6,6 +6,8 @@ import copy
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 import pandas as pd
+from scipy.spatial import distance
+import copy
 
 
 def BFP(data, time, dt):
@@ -106,7 +108,7 @@ def cluster_Kmeans(data):
     return(color_indices)
 
 
-def cluster_assign(train_PCA, test_PCA, test_time, color_indices, fs):
+def cluster_assign(train_PCA, test_PCA, test_time, index, fs):
     '''
     Clusters spikes in test data to any of the three neurons 
     3 clusters - 3 neurons
@@ -138,7 +140,9 @@ def cluster_assign(train_PCA, test_PCA, test_time, color_indices, fs):
         # calculating distances between points in extracted
         # features of training and test data
         for j in range(0, r_train):
-            temp = LA.norm(train_PCA[j, :]-test_PCA[i, :])
+            # temp = LA.norm(train_PCA[j, :]-test_PCA[i, :])
+            # temp = LA.norm(test_PCA[i, :]-train_PCA[j, :])
+            temp = distance.euclidean(train_PCA[j],test_PCA[i])
             d.append(temp)
 
         # storing indices of k nearest neighbours
@@ -146,7 +150,7 @@ def cluster_assign(train_PCA, test_PCA, test_time, color_indices, fs):
 
         # identifying which cluster it belongs to
         for j in range(0, k):
-            cluster_check.append(color_indices[idx[j]])
+            cluster_check.append(index[idx[j]])
 
         # looks for cluster with max occurence
         # and assigns to specific neuron
@@ -189,8 +193,12 @@ def cluster_assign(train_PCA, test_PCA, test_time, color_indices, fs):
             dur = dur + refractory_pd
 
         else:
+            print("out of neurons")
             continue
 
+  
+    print(len(test_time))
+    print(dur)
     return (neuron_1, neuron_2, neuron_3)
 
 
@@ -232,9 +240,10 @@ if __name__ == "__main__":
     k = 4
     threshold = var * k
 
-    AP = Align_peaks(dt, fs, NEO_filtered, Train_filtered)
+    AP_train = Align_peaks(dt, fs, NEO_filtered, Train_filtered)
 
-    train_extracted_features = PCA_analysis(AP)
+    train_extracted_features = PCA_analysis(AP_train)
+    # print(len(train_extracted_features))
 
     fig = plt.figure()
     # separating the columns to plot
@@ -248,6 +257,7 @@ if __name__ == "__main__":
     fig.savefig('Extracted Features.png')
 
     color_indices = cluster_Kmeans(train_extracted_features)
+    index = copy.deepcopy(color_indices)
 
     fig = plt.figure()
     plt.scatter(data_1, data_2, c=color_indices)
@@ -255,8 +265,6 @@ if __name__ == "__main__":
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
     fig.savefig('Clustered Features.png')
-
-    # plt.show()
 
     # Finished training
     # repeating for test data
@@ -269,15 +277,17 @@ if __name__ == "__main__":
     k = 4
     threshold = var * k
 
-    AP = Align_peaks(dt, fs, NEO_filtered, Test_filtered)
+    AP_test = Align_peaks(dt, fs, NEO_filtered, Test_filtered)
 
-    test_extracted_features = PCA_analysis(AP)
+    test_extracted_features = PCA_analysis(AP_test)
 
-    color_indices = cluster_Kmeans(test_extracted_features)
+    # print(len(test_extracted_features))
 
-    # print(color_indices)
+    # # color_indices = cluster_Kmeans(test_extracted_features)
+
+    # # print(color_indices)
     neuron_1, neuron_2, neuron_3 = cluster_assign(
-        train_extracted_features, test_extracted_features, Test_t, color_indices, fs)
+        AP_train, AP_test, Test_t, index, fs)
 
     fig = plt.figure()
     plt.plot(Test_t, neuron_1)
@@ -300,4 +310,4 @@ if __name__ == "__main__":
     plt.ylabel('Spikes')
     fig.savefig('neuron_3.png')
 
-    plt.show()
+    # plt.show()
