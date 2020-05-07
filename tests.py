@@ -11,7 +11,7 @@ Sreelakshmi Sunil
 
 '''
 '''
-This file contains tests for some of the functions in Lazor.py
+This file contains tests for some of the functions in Final.py
 '''
 
 
@@ -19,7 +19,6 @@ class TestCases(unittest.TestCase):
 
     '''
     Performs Unit test on various functions in Final.py
-    -1.22976075760316, 1.0497534845957164]
     '''
 
     def test_PCA_analysis(self):
