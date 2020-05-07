@@ -2,7 +2,7 @@
 
 This is a group project for Software Carpentry EN.540.635 to extract neural action potentials from electrode recordings. Group members and their emails: Molly Acord, macord1@jhu.edu Sreelakshmi Sunil, ssunil1@jhu.edu
 
-Necessary files included in Final Release v.f : Final.py, tests.py, and NII_Data.csv
+Necessary files included in Final Release v.final : Final.py, tests.py, and NII_Data.csv
 
 Final.py is the master code for this project. tests.py is used to make sure the different functions in the master code are returning what is expected.
 
