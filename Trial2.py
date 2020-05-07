@@ -206,7 +206,7 @@ def PCA_analysis(AP):
 
     **Parameters**
 
-        APs: *list, float*
+        AP: *list, float*
             Voltage values of action potential, or peaks
 
     **Returns**
@@ -225,8 +225,18 @@ def PCA_analysis(AP):
 
 def cluster_Kmeans(data):
     '''
-    Clustering based on KMeans
+    Clusters data based on KMeans algorithm
+
+    ***Parameters***
+        data : output matrix of PCA analysis size r x 2 
+               data contains extracted features
+
+    ***Returns***
+
+        color_indices(array): consists of 0, 1, 2
+            depending on which cluster it is assigned to
     '''
+    # each cluster represent 1 neuron
     # using KMeans function to identify clusters
     CLUSTER = KMeans(n_clusters=3).fit(data)
 
@@ -240,9 +250,25 @@ def cluster_Kmeans(data):
 
 def cluster_assign(train_PCA, test_PCA, test_time, index, fs):
     '''
-    Clusters spikes in test data to any of the three neurons
+    Assigns spikes in test data to any of the three neurons
     3 clusters - 3 neurons
     Based on k nearest neighbours algorithm
+    
+    ***Parameters***
+        train_PCA : r x 2 matrix containing 
+                     extracted features of the training data
+        test_PCA :  r x 2 matrix containing 
+                     extracted features of the test data
+        test_time : time distribution array for test data
+        index : color indices array output of KMeans fuction
+                for train data
+        fs(int) : sampling frequency
+
+    ***Returns***
+        Neuron_1(array): neuronal spike data for neuron 1
+        Neuron_2(array): neuronal spike data for neuron 2
+        Neuron_3(array): neuronal spike data for neuron 3
+
     '''
     # considers 10 nearest neighbours
     k = 11
@@ -289,6 +315,7 @@ def cluster_assign(train_PCA, test_PCA, test_time, index, fs):
         except statistics.StatisticsError:
             # error occurs when there is 2 mode values
             # code to calculate mode
+            # uses statistics.mode() otherwise to increase speed
             c_0 = 0
             c_1 = 0
             c_2 = 0
@@ -308,6 +335,7 @@ def cluster_assign(train_PCA, test_PCA, test_time, index, fs):
             # getting index of the highest number in c
             check = np.argpartition(c, -1)[-1:]
 
+        # checking which cluster it belongs to
         if check == 0:
             neuron_1[dur] = 1
             dur = dur + refractory_pd
@@ -380,7 +408,7 @@ if __name__ == "__main__":
 
     fig = plt.figure()
     plt.scatter(data_1, data_2, c=color_indices)
-    plt.title('Clustered Features of Training datausing KMeans')
+    plt.title('Clustered Features of Training data using KMeans')
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
     fig.savefig('Clustered Features Train_data.png')
@@ -460,3 +488,5 @@ if __name__ == "__main__":
     print('neuron_1.png')
     print('neuron_2.png')
     print('neuron_3.png')
+
+    plt.show()
