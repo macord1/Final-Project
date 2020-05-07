@@ -2,9 +2,9 @@
 
 This is a group project for Software Carpentry EN.540.635 to extract neural action potentials from electrode recordings. Group members and their emails: Molly Acord, macord1@jhu.edu Sreelakshmi Sunil, ssunil1@jhu.edu
 
-Necessary files included in Final Release v.f : Final.py and NII_Data.csv
+Necessary files included in Final Release v.f : Final.py, tests.py, and NII_Data.csv
 
-Final.py is the master code for this project.
+Final.py is the master code for this project. tests.py is used to make sure the different functions in the master code are returning what is expected.
 
 Method of solving: separate data in 5 seconds of traing data and 20 seconds of testing data, bandpass filter the raw data, apply nonlinear energy operator and threshold, align action potentials (or spikes), extract features using Principle Component Analysis, cluster features using k-MEANS, and classify spikes in testing data to their respective neuron by finding k Nearest Neighbors in training data. 
 
